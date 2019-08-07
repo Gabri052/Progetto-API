@@ -2,4 +2,6 @@ Debug
 Proprietà di progetto
 
 Debug
-Directory di lavoro
+coso in ingresso
+
+<C:\desktop\....\batch... .in

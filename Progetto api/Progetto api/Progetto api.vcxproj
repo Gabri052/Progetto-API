@@ -125,6 +125,9 @@
   <ItemGroup>
     <ClCompile Include="Code.c" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\OneDrive\Desktop\batch1.1.in" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

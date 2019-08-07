@@ -19,4 +19,9 @@
       <Filter>File di risorse</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\OneDrive\Desktop\batch1.1.in">
+      <Filter>File di origine</Filter>
+    </None>
+  </ItemGroup>
 </Project>
