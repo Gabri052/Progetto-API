@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Rel {	//first data-structure.
+//first data-structure.
+typedef struct Rel {
 	char* nameRel;
 	char* receiver;
 	struct Rel* relNext;
@@ -16,17 +17,20 @@ typedef struct Entity {
 } Entity;
 typedef Entity* EntityPointer;
 
-typedef struct RelTree {	//second data-structure.
+//second data-structure.
+typedef struct RelQueue {
 	char* receiver;
 	int numOfRels;
-	struct RelTree* relNext;
-} RelTree;
-typedef RelTree* RelTreePointer;
+	struct RelQueue* relBef;
+	struct RelQueue* relNext;
+} RelQueue;
+typedef RelQueue* RelQueuePointer;
 
 typedef struct RelStruct {
 	char* nameRel;
 	struct RelStruct* relNext;
-	RelTreePointer tree;
+	RelQueuePointer head;
+	RelQueuePointer tail;
 } RelStruct;
 typedef RelStruct* RelStructPointer;
 
@@ -41,7 +45,7 @@ void readLine();
 void addEntity();
 void lookForEnt();
 void addRelation(char*, char*, char*);
-void addRelToTree(char*, char*, char*);
+void addRelToQueue(char*, char*, char*);
 void printReport();
 /*		non servono per il primo test.
 void deleteEntity();
@@ -55,11 +59,9 @@ void main(int argc, char* argv[]) {
 		printf("Errore allocazione riga: ending process.");
 		return;
 	}
-
-	while (line!="end\n") {
+	while (line != "end\n") {
 		readLine();
-	}		//end while
-
+	}
 	return;
 }			//end of Main()
 
@@ -73,8 +75,6 @@ void readLine() {
 	}
 	else if (!strcmp(line, "addrel ")) { lookForEnt();	}
 	else if (!strcmp(line, "report ")) { printReport(); }
-	else if (!strcmp(line, "repot ")) { 
-		printReport(); }
 	/*
 	else if (!strcmp(line, "delent ")) { deleteEntity(); }
 	else if (!strcmp(line, "delrel ")) { deleteRelation(); }
@@ -104,7 +104,6 @@ void addEntity() {
 
 void lookForEnt() {
 	int i = 0;
-	int j = 0;
 	char* nameEnt = (char*)calloc(64, sizeof(char));
 	char* nameReceiver = (char*)calloc(64, sizeof(char));
 	char* nameRel = (char*)calloc(64, sizeof(char));
@@ -112,7 +111,7 @@ void lookForEnt() {
 	fscanf_s(stdin, "%s", nameReceiver, 64);
 	fscanf_s(stdin, "%s", nameRel, 64);
 	addRelation(nameEnt, nameReceiver, nameRel);	//nameRel termina con '\n'
-	addRelToTree(nameEnt, nameReceiver, nameRel);
+	addRelToQueue(nameEnt, nameReceiver, nameRel);
 }
 
 
@@ -143,7 +142,6 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 			}
 			else relPointer = relPointer->relNext;
 		}
-
 		if (!isNewRel) {	//the rel already exists->nothing has to be done
 			return;
 		}
@@ -160,59 +158,95 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 	else {	//if the two entities do not exist
 		return;
 	}
-}
+}	//end of addRelation()
 
 
-void addRelToTree(char* ent, char* receiver, char* rel) {	//funzia se la rel c'è già?
+void addRelToQueue(char* ent, char* receiver, char* rel) {	//funzia se la rel c'è già?
 	int isNewRelName = 1;
 	//adds to the second data structure the relation.
 	RelStructPointer temp;// = (RelStructPointer)malloc(sizeof(RelStruct));
-	RelTreePointer treePointer = NULL;
+	RelQueuePointer QueuePointer = NULL;
+	RelQueuePointer QueuePointerBack = NULL;
+	RelQueuePointer QueuePointerFront = NULL;
+
 
 	temp = relHead;
 	while ((isNewRelName) && (temp != NULL)) {
 		if (!strcmp(temp->nameRel, rel)) isNewRelName = 0;
 		else temp = temp->relNext;
 	}
-	if (isNewRelName) {		//creates the rel and the tree
+	if (isNewRelName) {		//creates the rel and the Queue
 		temp = (RelStructPointer)malloc(sizeof(RelStruct));
 		temp->nameRel = (char*)malloc(sizeof(char) * 64);
 		strcpy_s(temp->nameRel, 64, rel);
-		temp->tree = (RelTreePointer)calloc(1, sizeof(RelTree));
-		temp->tree->receiver = (char*)malloc(64);
-		strcpy_s(temp->tree->receiver, 64, receiver);
-		temp->tree->numOfRels++;
-		temp->tree->relNext = NULL;
+		temp->head = (RelQueuePointer)calloc(1, sizeof(RelQueue));
+		temp->head->receiver = (char*)malloc(64);
+		strcpy_s(temp->head->receiver, 64, receiver);
+		temp->head->numOfRels++;
+		temp->tail = temp->head;
 		temp->relNext = relHead;
 		relHead = temp;
 	}
-	else {		//adds to the tree the new rel
-		treePointer = temp->tree;
-		while ((treePointer != NULL) && (strcmp(treePointer->receiver, receiver) != 0)) {
-			treePointer = treePointer->relNext;
+	else {		//adds to the Queue the new rel
+		if (strcmp(temp->head->receiver, receiver) > 0) {
+			QueuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
+			QueuePointer->receiver = (char*)malloc(64);
+			strcpy_s(QueuePointer->receiver, 64, receiver);
+			QueuePointer->numOfRels++;
+			QueuePointer->relNext = temp->head;
+			temp->head->relBef = QueuePointer;
+			temp->head = QueuePointer;
 		}
-		if (treePointer == NULL) {
-			treePointer = (RelTreePointer)calloc(1, sizeof(RelTree));
-			treePointer->receiver = (char*)malloc(64);
-			strcpy_s(treePointer->receiver, 64, receiver);
-			treePointer->numOfRels++;
-			treePointer->relNext = temp->tree;
-			temp->tree = treePointer;
-			printf("(report)\n");
-
+		else if (strcmp(temp->tail->receiver, receiver) < 0) {
+			QueuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
+			QueuePointer->receiver = (char*)malloc(64);
+			strcpy_s(QueuePointer->receiver, 64, receiver);
+			QueuePointer->numOfRels++;
+			QueuePointer->relBef = temp->tail;
+			temp->tail->relNext = QueuePointer;
+			temp->tail = QueuePointer;
 		}
-		else {
-			treePointer->numOfRels++;
-			//orderTheTree()
+		else {	//looks for the right place to put the receiver
+			QueuePointer = temp->head;
+			while ((QueuePointer != NULL) && (strcmp(QueuePointer->receiver, receiver) != 0)) {
+				if (strcmp(QueuePointer->receiver, receiver) < 0) {
+					QueuePointer = QueuePointer->relNext;
+				}
+				else {
+					break;
+				}
+			}
+			if (!(strcmp(QueuePointer->receiver, receiver))) {	//increases numOfRel
+				QueuePointer->numOfRels++;
+			}
+			else {
+				QueuePointerBack = temp->head;
+				QueuePointerFront = temp->head;
+				while (QueuePointerBack->relNext != QueuePointer) {
+					QueuePointerBack = QueuePointerBack->relNext;
+				}
+				while (QueuePointerFront != QueuePointer) {
+					QueuePointerFront = QueuePointerFront->relNext;
+				}
+				QueuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
+				QueuePointer->receiver = (char*)malloc(64);
+				strcpy_s(QueuePointer->receiver, 64, receiver);
+				QueuePointer->numOfRels++;
+				QueuePointer->relNext = QueuePointerFront;
+				QueuePointer->relBef = QueuePointerBack;
+				QueuePointerBack->relNext = QueuePointer;
+				QueuePointerFront->relBef = QueuePointer;	//non aggiorna relHead perchè sono con QueuePointer!!
+				printf("(report)\n");
+			}
 		}
 	}
-}
+}	//end of addRelToQueue
 
 
 void printReport() {
 	printf("(report)\n");
 
-}
+}	//end of printReport()
 
 /*
 void deleteEntity() {

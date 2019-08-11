@@ -23,5 +23,8 @@
     <None Include="..\..\..\..\..\OneDrive\Desktop\batch1.1.in">
       <Filter>File di origine</Filter>
     </None>
+    <None Include="..\..\..\..\..\OneDrive\Desktop\batch1.1.py.out">
+      <Filter>File di origine</Filter>
+    </None>
   </ItemGroup>
 </Project>
