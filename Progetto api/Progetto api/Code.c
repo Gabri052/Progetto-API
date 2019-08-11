@@ -36,8 +36,8 @@ typedef RelStruct* RelStructPointer;
 
 	//global variables:
 char* line=NULL;
+int highestNumOfRel = 0;
 EntityPointer entHead = NULL;
-
 RelStructPointer relHead = NULL;
 
 //Prototypes
@@ -46,7 +46,8 @@ void addEntity();
 void lookForEnt();
 void addRelation(char*, char*, char*);
 void addRelToQueue(char*, char*, char*);
-void printReport();
+void printReport(char*, char**);
+char** chooseEntsToPrint();
 /*		non servono per il primo test.
 void deleteEntity();
 void deleteRelation();
@@ -59,26 +60,37 @@ void main(int argc, char* argv[]) {
 		printf("Errore allocazione riga: ending process.");
 		return;
 	}
-	while (line != "end\n") {
-		readLine();
-	}
+	readLine();
 	return;
 }			//end of Main()
 
 
 //Methods
 void readLine() {
-	fgets(line, 8, stdin);
-	
-	if (!strcmp(line, "addent ")) { 
-		addEntity();
+	RelStructPointer relPointer = NULL;
+	while (strcmp(line, "end\n") != 0) {
+		fgets(line, 8, stdin);
+
+		if (!strcmp(line, "addent ")) {
+			addEntity();
+		}
+		else if (!strcmp(line, "addrel ")) { lookForEnt(); }
+		else if (!strcmp(line, "report\n")) {
+			relPointer = relHead;
+			if (relPointer == NULL) {
+				printf("none");
+			}
+			while (relPointer != NULL) {
+				printReport(relPointer->nameRel, chooseEntsToPrint());
+				relPointer = relPointer->relNext;
+			}
+			printf("\n");
+		}
+		/*
+		else if (!strcmp(line, "delent ")) { deleteEntity(); }
+		else if (!strcmp(line, "delrel ")) { deleteRelation(); }
+		*/
 	}
-	else if (!strcmp(line, "addrel ")) { lookForEnt();	}
-	else if (!strcmp(line, "report ")) { printReport(); }
-	/*
-	else if (!strcmp(line, "delent ")) { deleteEntity(); }
-	else if (!strcmp(line, "delrel ")) { deleteRelation(); }
-	*/
 }
 
 
@@ -235,18 +247,55 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {	//funzia se la rel c'
 				QueuePointer->relNext = QueuePointerFront;
 				QueuePointer->relBef = QueuePointerBack;
 				QueuePointerBack->relNext = QueuePointer;
-				QueuePointerFront->relBef = QueuePointer;	//non aggiorna relHead perchè sono con QueuePointer!!
-				printf("(report)\n");
+				QueuePointerFront->relBef = QueuePointer;
 			}
 		}
 	}
 }	//end of addRelToQueue
 
 
-void printReport() {
-	printf("(report)\n");
-
+void printReport(char* nameRel, char** nameEnts) {
+	int i = 0;
+	if (relHead == NULL) {
+		printf("none");
+	}
+	else {
+		printf("%s ", nameRel);
+		while (nameEnts[i] != NULL) {
+			printf("%s ", nameEnts[i]);
+			i++;
+		}
+		printf("%d; ", highestNumOfRel);
+	}
 }	//end of printReport()
+
+
+char** chooseEntsToPrint() {
+	RelQueuePointer queuePointer = relHead->head;
+	int j, i = 0, numOfRel = 0;
+	char** entsToPrint = (char**)calloc(sizeof(char*), 15);	//ten ents receive the same number of the same relation.
+	highestNumOfRel = 0;
+	while (queuePointer != NULL) {
+		if (numOfRel < queuePointer->numOfRels) {
+			highestNumOfRel = queuePointer->numOfRels;
+			for (j = 0; j < i; j++) {
+				entsToPrint[j] = "";
+			}
+			i = 0;
+			entsToPrint[i] = (char*)malloc(sizeof(char) * 64);
+			strcpy_s(entsToPrint[i], 64, queuePointer->receiver);
+			i++;
+		}
+		else if (highestNumOfRel == queuePointer->numOfRels) {
+			entsToPrint[i] = (char*)malloc(sizeof(char) * 64);
+			strcpy_s(entsToPrint[i], 64, queuePointer->receiver);
+			i++;
+		}
+		queuePointer = queuePointer->relNext;
+		if (i == 15) printf("entsToPrint deve essere riallocato perchè è troppo piccolo");
+	}
+	return entsToPrint;
+}
 
 /*
 void deleteEntity() {
