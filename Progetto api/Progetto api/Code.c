@@ -14,7 +14,8 @@ typedef Rel* RelPointer;
 typedef struct Entity {
 	char* name;
 	RelPointer relPointer;
-	struct Entity* entNext;
+	struct Entity* sonDx;
+	struct Entity* sonSx;
 } Entity;
 typedef Entity* EntityPointer;
 
@@ -97,7 +98,8 @@ void readLine() {
 
 
 void addEntity() {
-	EntityPointer entPoint = (EntityPointer)malloc(sizeof(Entity));
+	EntityPointer entPoint = (EntityPointer)calloc(sizeof(Entity), 1);
+	EntityPointer entSearch = entHead;
 	int endOfLine;
 
 	if (entPoint != NULL) {
@@ -105,12 +107,28 @@ void addEntity() {
 		fgets(line, 64, stdin);
 		endOfLine = strlen(line) - 1;
 		line[endOfLine] = '\0';
-		entPoint->relPointer = NULL;
-		entPoint->entNext = NULL;
 		entPoint->name = (char*)malloc(sizeof(char) * 64);
 		if (entPoint->name != NULL) { strcpy_s(entPoint->name, 64, line); }
-		entPoint->entNext = entHead;
-		entHead = entPoint;
+
+		if (entSearch == NULL) {	//enthead does not exist
+			entHead = entPoint;
+			return;
+		}
+		while ((strcmp(entSearch->name, line) != 0) && (entSearch->sonDx != NULL) && (entSearch->sonSx != NULL)) {
+			if (strcmp(entSearch->name, line) < 0) {
+				entSearch = entSearch->sonDx;
+			}
+			else {
+				entSearch = entSearch->sonSx;
+			}
+		}
+		if (strcmp(entSearch->name, line) < 0) {
+			entSearch->sonDx=entPoint;
+		}
+		else {
+			entSearch->sonSx = entPoint;
+		}
+		//order the tree
 	}
 	else printf("Errore nell'allocazione di entPoint (addEntity): ending process.");
 }
@@ -140,16 +158,29 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 
 	/*while ((entityPointer != NULL) && (entNotExists)) {	in teoria isNewRelation() dovrebbe fare questo lavoro
 		if (!(strcmp(entityPointer->name, nameReceiver))) {
-			entityPointer = entHead;*/
+			entityPointer = entHead;
 			while ((entityPointer != NULL) && (entNotExists)) {
 				if (!(strcmp(entityPointer->name, nameEnt))) {
 					entNotExists = 0;	//both the receiver and the ent exist
 				}
 				else entityPointer = entityPointer->entNext;
 			}
-		/*}
+		}
 		else entityPointer = entityPointer->entNext;
 	}*/
+	while ((entityPointer != NULL) && (entNotExists)) {
+		if (!(strcmp(entityPointer->name, nameEnt))) {
+			entNotExists = 0;
+		}
+		else {
+			if (strcmp(entityPointer->name, line) < 0) {
+				entityPointer = entityPointer->sonDx;
+			}
+			else {
+				entityPointer = entityPointer->sonSx;
+			}
+		}
+	}
 	relPointer = entityPointer->relPointer;
 	if (!entNotExists) {	//if they exist
 		while ((relPointer != NULL) && (isNewRel)) {	//checks if the rel is already added (1)
@@ -261,8 +292,16 @@ bool isNewRelation(char* nameRel, char* receiver, char* user) {
 	EntityPointer structTemp = entHead;
 	RelPointer relPointer = NULL;
 
-	while ((structTemp != NULL) && (strcmp(structTemp->name, user) != 0)) {
-		structTemp = structTemp->relPointer;
+	while (structTemp != NULL) {
+	if (strcmp(structTemp->name, user) != 0) { 
+		if (strcmp(structTemp->name, line) < 0) {
+			structTemp = structTemp->sonDx;
+		}
+		else {
+			structTemp = structTemp->sonSx;
+		}
+	}
+	else break;
 	}
 	if (structTemp == NULL) return false;	//the ent does not exist
 	else {
