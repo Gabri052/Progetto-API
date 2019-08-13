@@ -49,7 +49,7 @@ void lookForEnt();
 void addRelation(char*, char*, char*);
 void addRelToQueue(char*, char*, char*);
 void printReport(char*, char**);
-char** chooseEntsToPrint();
+char** chooseEntsToPrint(RelQueuePointer);
 bool isNewRelation(char*, char*, char*);
 /*		non servono per il primo test.
 void deleteEntity();
@@ -84,7 +84,7 @@ void readLine() {
 				printf("none");
 			}
 			while (relPointer != NULL) {
-				printReport(relPointer->nameRel, chooseEntsToPrint());
+				printReport(relPointer->nameRel, chooseEntsToPrint(relPointer->head));
 				relPointer = relPointer->relNext;
 			}
 			printf("\n");
@@ -112,25 +112,33 @@ void addEntity() {
 
 		if (entSearch == NULL) {	//enthead does not exist
 			entHead = entPoint;
-			return;
-		}
-		while ((strcmp(entSearch->name, line) != 0) && (entSearch->sonDx != NULL) && (entSearch->sonSx != NULL)) {
-			if (strcmp(entSearch->name, line) < 0) {
-				entSearch = entSearch->sonDx;
-			}
-			else {
-				entSearch = entSearch->sonSx;
-			}
-		}
-		if (strcmp(entSearch->name, line) < 0) {
-			entSearch->sonDx=entPoint;
 		}
 		else {
-			entSearch->sonSx = entPoint;
+			while ((strcmp(entSearch->name, line) != 0)) {
+				if (strcmp(entSearch->name, line) < 0) {
+					if (entSearch->sonDx != NULL) {
+						entSearch = entSearch->sonDx;
+					}
+					else break;
+				}
+				else {
+					if (entSearch->sonSx != NULL) {
+						entSearch = entSearch->sonSx;
+					}
+					else break;
+				}
+			}
+			if (strcmp(entSearch->name, line) < 0) {
+				entSearch->sonDx = entPoint;
+			}
+			else {
+				entSearch->sonSx = entPoint;
+			}
 		}
 		//order the tree
 	}
 	else printf("Errore nell'allocazione di entPoint (addEntity): ending process.");
+	printf("");
 }
 
 
@@ -181,8 +189,9 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 			}
 		}
 	}
-	relPointer = entityPointer->relPointer;
-	if (!entNotExists) {	//if they exist
+	if (entNotExists) return;
+	else {	//if they exist
+		relPointer = entityPointer->relPointer;
 		while ((relPointer != NULL) && (isNewRel)) {	//checks if the rel is already added (1)
 			if (!(strcmp(relPointer->nameRel, nameRel)) && !(strcmp(relPointer->receiver, nameReceiver))) {
 				isNewRel = 0;	//the same rel has been found->it's not a new rel->not to be added
@@ -201,9 +210,6 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 			relPointer->relNext = entityPointer->relPointer;
 			entityPointer->relPointer = relPointer;
 		}
-	}
-	else {	//if the two entities do not exist
-		return;
 	}
 }	//end of addRelation()
 
@@ -294,7 +300,7 @@ bool isNewRelation(char* nameRel, char* receiver, char* user) {
 
 	while (structTemp != NULL) {
 	if (strcmp(structTemp->name, user) != 0) { 
-		if (strcmp(structTemp->name, line) < 0) {
+		if (strcmp(structTemp->name, user) < 0) {
 			structTemp = structTemp->sonDx;
 		}
 		else {
@@ -303,7 +309,9 @@ bool isNewRelation(char* nameRel, char* receiver, char* user) {
 	}
 	else break;
 	}
-	if (structTemp == NULL) return false;	//the ent does not exist
+	if (structTemp == NULL) { 
+		return false; 
+	}	//the ent does not exist
 	else {
 		relPointer = structTemp->relPointer;
 		while ((relPointer != NULL)) {
@@ -333,19 +341,21 @@ void printReport(char* nameRel, char** nameEnts) {
 }	//end of printReport()
 
 
-char** chooseEntsToPrint() {
-	RelQueuePointer queuePointer = relHead->head;
-	int j, i = 0, numOfRel = 0;
-	char** entsToPrint = (char**)calloc(sizeof(char*), 15);	//ten ents receive the same number of the same relation.
+char** chooseEntsToPrint(RelQueuePointer relQueuePointer) {
+	RelQueuePointer queuePointer = relQueuePointer;
+	int j = 0, i = 0;
+	char** entsToPrint = (char**)calloc(sizeof(char*), 15);	//fifteen ents receive the same number of the same relation.
 	highestNumOfRel = 0;
 	while (queuePointer != NULL) {
-		if (numOfRel < queuePointer->numOfRels) {
+		if (highestNumOfRel < queuePointer->numOfRels) {
 			highestNumOfRel = queuePointer->numOfRels;
-			for (j = 0; j < i; j++) {
-				entsToPrint[j] = "";
+			while (entsToPrint[j] != NULL) {
+				free(entsToPrint[j]);
+				j++;
 			}
 			i = 0;
-			entsToPrint[i] = (char*)malloc(sizeof(char) * 64);
+			j = 0;
+			entsToPrint[i] = (char*)calloc(sizeof(char), 64);
 			strcpy_s(entsToPrint[i], 64, queuePointer->receiver);
 			i++;
 		}
