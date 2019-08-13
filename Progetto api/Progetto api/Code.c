@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 //first data-structure.
 typedef struct Rel {
@@ -35,7 +36,7 @@ typedef struct RelStruct {
 typedef RelStruct* RelStructPointer;
 
 	//global variables:
-char* line=NULL;
+char* line = NULL;
 int highestNumOfRel = 0;
 EntityPointer entHead = NULL;
 RelStructPointer relHead = NULL;
@@ -48,6 +49,7 @@ void addRelation(char*, char*, char*);
 void addRelToQueue(char*, char*, char*);
 void printReport(char*, char**);
 char** chooseEntsToPrint();
+bool isNewRelation(char*, char*, char*);
 /*		non servono per il primo test.
 void deleteEntity();
 void deleteRelation();
@@ -99,6 +101,7 @@ void addEntity() {
 	int endOfLine;
 
 	if (entPoint != NULL) {
+		//fscanf_s(stdin, "%s", line);
 		fgets(line, 64, stdin);
 		endOfLine = strlen(line) - 1;
 		line[endOfLine] = '\0';
@@ -106,7 +109,6 @@ void addEntity() {
 		entPoint->entNext = NULL;
 		entPoint->name = (char*)malloc(sizeof(char) * 64);
 		if (entPoint->name != NULL) { strcpy_s(entPoint->name, 64, line); }
-		
 		entPoint->entNext = entHead;
 		entHead = entPoint;
 	}
@@ -122,30 +124,32 @@ void lookForEnt() {
 	fscanf_s(stdin, "%s", nameEnt, 64);
 	fscanf_s(stdin, "%s", nameReceiver, 64);
 	fscanf_s(stdin, "%s", nameRel, 64);
-	addRelation(nameEnt, nameReceiver, nameRel);	//nameRel termina con '\n'
-	addRelToQueue(nameEnt, nameReceiver, nameRel);
+	if (isNewRelation(nameRel, nameReceiver, nameEnt)) {
+		addRelation(nameEnt, nameReceiver, nameRel);	//nameRel termina con '\n'
+		addRelToQueue(nameEnt, nameReceiver, nameRel);
+	}
 }
 
 
 void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the first data-structure
 	EntityPointer entityPointer = (EntityPointer)malloc(sizeof(Entity));
 	RelPointer relPointer = NULL;
-	int entNotExists = 1;
-	int isNewRel = 1;
+	bool entNotExists = 1;
+	bool isNewRel = 1;
 	entityPointer = entHead;
 
-	while ((entityPointer != NULL) && (entNotExists)) {
+	/*while ((entityPointer != NULL) && (entNotExists)) {	in teoria isNewRelation() dovrebbe fare questo lavoro
 		if (!(strcmp(entityPointer->name, nameReceiver))) {
-			entityPointer = entHead;
+			entityPointer = entHead;*/
 			while ((entityPointer != NULL) && (entNotExists)) {
 				if (!(strcmp(entityPointer->name, nameEnt))) {
 					entNotExists = 0;	//both the receiver and the ent exist
 				}
 				else entityPointer = entityPointer->entNext;
 			}
-		}
+		/*}
 		else entityPointer = entityPointer->entNext;
-	}
+	}*/
 	relPointer = entityPointer->relPointer;
 	if (!entNotExists) {	//if they exist
 		while ((relPointer != NULL) && (isNewRel)) {	//checks if the rel is already added (1)
@@ -174,13 +178,12 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 
 
 void addRelToQueue(char* ent, char* receiver, char* rel) {	//funzia se la rel c'è già?
-	int isNewRelName = 1;
+	bool isNewRelName = 1;
 	//adds to the second data structure the relation.
 	RelStructPointer temp;// = (RelStructPointer)malloc(sizeof(RelStruct));
 	RelQueuePointer QueuePointer = NULL;
 	RelQueuePointer QueuePointerBack = NULL;
 	RelQueuePointer QueuePointerFront = NULL;
-
 
 	temp = relHead;
 	while ((isNewRelName) && (temp != NULL)) {
@@ -252,6 +255,27 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {	//funzia se la rel c'
 		}
 	}
 }	//end of addRelToQueue
+
+
+bool isNewRelation(char* nameRel, char* receiver, char* user) {
+	EntityPointer structTemp = entHead;
+	RelPointer relPointer = NULL;
+
+	while ((structTemp != NULL) && (strcmp(structTemp->name, user) != 0)) {
+		structTemp = structTemp->relPointer;
+	}
+	if (structTemp == NULL) return false;	//the ent does not exist
+	else {
+		relPointer = structTemp->relPointer;
+		while ((relPointer != NULL)) {
+			if ((strcmp(relPointer->nameRel, nameRel) == 0) && (strcmp(relPointer->receiver, receiver) == 0)) {
+				return false;
+			}
+			else relPointer = relPointer->relNext;
+		}
+	}
+	return true;
+}
 
 
 void printReport(char* nameRel, char** nameEnts) {
