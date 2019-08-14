@@ -177,11 +177,11 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 		else entityPointer = entityPointer->entNext;
 	}*/
 	while ((entityPointer != NULL) && (entNotExists)) {
-		if (!(strcmp(entityPointer->name, nameEnt))) {
+		if (strcmp(entityPointer->name, nameEnt) == 0) {
 			entNotExists = 0;
 		}
 		else {
-			if (strcmp(entityPointer->name, line) < 0) {
+			if (strcmp(entityPointer->name, nameEnt) < 0) {
 				entityPointer = entityPointer->sonDx;
 			}
 			else {
@@ -192,7 +192,7 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 	if (entNotExists) return;
 	else {	//if they exist
 		relPointer = entityPointer->relPointer;
-		while ((relPointer != NULL) && (isNewRel)) {	//checks if the rel is already added (1)
+		while ((relPointer != NULL) && (isNewRel)) {	//checks if the rel is already added (1) -- is it necessary?
 			if (!(strcmp(relPointer->nameRel, nameRel)) && !(strcmp(relPointer->receiver, nameReceiver))) {
 				isNewRel = 0;	//the same rel has been found->it's not a new rel->not to be added
 			}
@@ -299,15 +299,15 @@ bool isNewRelation(char* nameRel, char* receiver, char* user) {
 	RelPointer relPointer = NULL;
 
 	while (structTemp != NULL) {
-	if (strcmp(structTemp->name, user) != 0) { 
-		if (strcmp(structTemp->name, user) < 0) {
-			structTemp = structTemp->sonDx;
+		if (strcmp(structTemp->name, user) != 0) { 
+			if (strcmp(structTemp->name, user) < 0) {
+				structTemp = structTemp->sonDx;
+			}
+			else {
+				structTemp = structTemp->sonSx;
+			}
 		}
-		else {
-			structTemp = structTemp->sonSx;
-		}
-	}
-	else break;
+		else break;
 	}
 	if (structTemp == NULL) { 
 		return false; 
