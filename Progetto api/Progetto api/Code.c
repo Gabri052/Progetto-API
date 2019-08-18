@@ -95,6 +95,7 @@ void readLine() {
 		else if (!strcmp(line, "delent")) {
 			fscanf(stdin, "%s", line);
 			deleteEntity(line);
+			deleteEntityFromQueue(line);
 		}
 		else if (!strcmp(line, "delrel")) { lookForEnt(); }
 		
@@ -368,7 +369,6 @@ char** chooseEntsToPrint(RelQueuePointer relQueuePointer) {
 			while (entsToPrint[j] != NULL) {
 				free(entsToPrint[j]);
 				entsToPrint[j] = NULL;
-				//entsToPrint[j] = "";
 				j++;
 			}
 			i = 0;
@@ -441,8 +441,9 @@ void deleteRelationFromQueue(char* nameEnt, char* nameReceiver, char* nameRel) {
 		if (strcmp(relStructTemp->head->receiver, nameReceiver) == 0) {
 			if (relStructTemp->head->numOfRels == 1) {
 				relQueueTemp = relStructTemp->head;
-				relStructTemp->head = relQueueTemp->relNext;
-				relQueueTemp = NULL;
+				relStructTemp->head = relStructTemp->head->relNext;
+				if (strcmp(relStructTemp->tail->receiver, nameReceiver) == 0) { relStructTemp->tail = NULL; }
+				relStructTemp->head->relBef = NULL;
 				free(relQueueTemp);
 				isQueueEmpty(relStructTemp);
 			}
@@ -455,7 +456,7 @@ void deleteRelationFromQueue(char* nameEnt, char* nameReceiver, char* nameRel) {
 				relQueueTemp = relStructTemp->tail;
 				relStructTemp->tail = relQueueTemp->relBef;
 				free(relQueueTemp);
-				relQueueTemp = NULL;
+				relStructTemp->tail->relNext = NULL;
 				isQueueEmpty(relStructTemp);
 			}
 			else {
@@ -464,10 +465,12 @@ void deleteRelationFromQueue(char* nameEnt, char* nameReceiver, char* nameRel) {
 		}
 		else {
 			relQueueTemp = relStructTemp->head;
-			while (relQueueTemp != NULL && strcmp(relQueueTemp->receiver, nameReceiver) != 0) {
+			while ((relQueueTemp != NULL) && (strcmp(relQueueTemp->receiver, nameReceiver) != 0)) {
 				relQueueTemp = relQueueTemp->relNext;
 			}
-			if (relQueueTemp == NULL){return; }
+			if (relQueueTemp == NULL){
+				return; 
+			}
 			else {
 				if (relQueueTemp->numOfRels == 1) {
 					relQueueTemp->relBef->relNext = relQueueTemp->relNext;
@@ -569,10 +572,18 @@ void deleteEntityFromQueue(char* nameEnt) {
 		relQueueTemp = relStructTemp->head;
 		while (relQueueTemp != NULL) {
 			if (!(strcmp(relQueueTemp->receiver, nameEnt))) {
-				if (relQueueTemp->relBef != NULL) { relQueueTemp->relBef->relNext = relQueueTemp->relNext; }
-				else { relStructTemp->head = relQueueTemp->relNext;	}
+				if (relQueueTemp->relBef != NULL) { 
+					relQueueTemp->relBef->relNext = relQueueTemp->relNext;
+				}
+				if (relQueueTemp->relNext != NULL) {
+					relQueueTemp->relNext->relBef = relQueueTemp->relBef;
+				}
+				if (relQueueTemp == relStructTemp->head) { relStructTemp->head = relQueueTemp->relNext; }
+				else if (relQueueTemp == relStructTemp->tail) { 
+					relStructTemp->tail = relQueueTemp->relBef;
+					relStructTemp->tail->relNext = NULL;
+				}
 				free(relQueueTemp);
-				relQueueTemp = NULL;
 				break;
 			}
 			else { relQueueTemp = relQueueTemp->relNext; }
@@ -582,7 +593,7 @@ void deleteEntityFromQueue(char* nameEnt) {
 }
 
 
-void isQueueEmpty(RelStructPointer relStruct) {
+void isQueueEmpty(RelStructPointer relStruct) {	//checks whether the structRel has a relQueue empty; if so, it frees it.
 	RelQueuePointer	relQueueTemp = relStruct->head;
 	RelStructPointer relTemp = relHead;
 
