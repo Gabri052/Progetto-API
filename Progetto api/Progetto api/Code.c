@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 //Methods
 void readLine() {
 	RelStructPointer relPointer = NULL;
-	while (strcmp(line, "end\n") != 0) {
+	while (strcmp(line, "end") != 0) {
 		fscanf(stdin, "%s", line);
 
 		if (!strcmp(line, "addent")) {
