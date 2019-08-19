@@ -50,7 +50,7 @@ void addRelation(char*, char*, char*);
 void addRelToQueue(char*, char*, char*);
 void printReport(char*, char**);
 char** chooseEntsToPrint(RelQueuePointer);
-bool isNewRelation(char*, char*, char*);
+bool isNewRelation(char*, char*, char*, bool);
 void deleteRelation(char*, char*, char*);
 void deleteRelationFromQueue(char*, char*, char*);
 void deleteEntity(char*);
@@ -66,8 +66,9 @@ int main(int argc, char* argv[]) {
 		return;
 	}
 	readLine();
+	printf("\n");
 	return 0;
-}			//end of Main()
+}	//end of Main()
 
 
 //Methods
@@ -152,13 +153,13 @@ void lookForEnt() {
 	fscanf(stdin, "%s", nameReceiver);
 	fscanf(stdin, "%s", nameRel);
 	if (!(strcmp(line, "addrel"))) {
-		if (isNewRelation(nameRel, nameReceiver, nameEnt)) {
+		if (isNewRelation(nameRel, nameReceiver, nameEnt, false)) {
 			addRelation(nameEnt, nameReceiver, nameRel);
 			addRelToQueue(nameEnt, nameReceiver, nameRel);
 		}
 	}
 	else  {	//delrel
-		if (!(isNewRelation(nameRel, nameReceiver, nameEnt))) {
+		if (!(isNewRelation(nameRel, nameReceiver, nameEnt, true))) {
 			deleteRelation(nameEnt, nameReceiver, nameRel);
 			deleteRelationFromQueue(nameEnt, nameReceiver, nameRel);
 		}
@@ -327,7 +328,7 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 }	//end of addRelToQueue
 
 
-bool isNewRelation(char* nameRel, char* receiver, char* user) {
+bool isNewRelation(char* nameRel, char* receiver, char* user, bool isDelrel) {
 	EntityPointer structTemp = entHead;
 	RelPointer relPointer = NULL;
 
@@ -339,7 +340,8 @@ bool isNewRelation(char* nameRel, char* receiver, char* user) {
 		else break;
 	}
 	if (structTemp == NULL) { 
-		return false; 
+		if (isDelrel) { return true; }
+		else return false;
 	}	//the ent does not exist
 	else {
 		relPointer = structTemp->relPointer;
