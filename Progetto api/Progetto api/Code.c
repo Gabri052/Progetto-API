@@ -4,16 +4,16 @@
 #include <stdbool.h>
 
 //first data-structure.
-typedef struct Rel {
+/*typedef struct Rel {			hola
 	char* nameRel;
 	char* receiver;
 	struct Rel* relNext;
 } Rel;
-typedef Rel* RelPointer;
+typedef Rel* RelPointer;*/
 
 typedef struct Entity {
 	char* name;
-	RelPointer relPointer;
+	//RelPointer relPointer;	hola
 	struct Entity* sonDx;
 	struct Entity* sonSx;
 } Entity;
@@ -21,6 +21,7 @@ typedef Entity* EntityPointer;
 
 //second data-structure.
 typedef struct RelQueue {
+	char** nameEnts;	//hola
 	char* receiver;
 	int numOfRels;
 	struct RelQueue* relBef;
@@ -46,12 +47,12 @@ RelStructPointer relHead = NULL;
 void readLine();
 void addEntity(char*);
 void lookForEnt();
-void addRelation(char*, char*, char*);
+//void addRelation(char*, char*, char*);		hola
 void addRelToQueue(char*, char*, char*);
 void printReport(char*, char**);
 char** chooseEntsToPrint(RelQueuePointer);
-bool isNewRelation(char*, char*, char*, bool);
-void deleteRelation(char*, char*, char*);
+bool isNewRelation(char*, char*, char*);
+//void deleteRelation(char*, char*, char*);			hola
 void deleteRelationFromQueue(char*, char*, char*);
 void deleteEntity(char*);
 void deleteEntityFromQueue(char*);
@@ -60,10 +61,10 @@ void isQueueEmpty(RelStructPointer);
 
 
 int main(int argc, char* argv[]) {
-	line=(char*)malloc(64 * sizeof(char));
+	line = (char*)malloc(64 * sizeof(char));
 	if (line == NULL) {
 		printf("Errore allocazione riga: ending process.");
-		return;
+		return 1;
 	}
 	readLine();
 	printf("\n");
@@ -153,23 +154,23 @@ void lookForEnt() {
 	fscanf(stdin, "%s", nameReceiver);
 	fscanf(stdin, "%s", nameRel);
 	if (!(strcmp(line, "addrel"))) {
-		if (isNewRelation(nameRel, nameReceiver, nameEnt, false)) {
-			addRelation(nameEnt, nameReceiver, nameRel);
+		if (isNewRelation(nameRel, nameReceiver, nameEnt)) {
+			//addRelation(nameEnt, nameReceiver, nameRel);
 			addRelToQueue(nameEnt, nameReceiver, nameRel);
 		}
 	}
 	else  {	//delrel
-		if (!(isNewRelation(nameRel, nameReceiver, nameEnt, true))) {
-			deleteRelation(nameEnt, nameReceiver, nameRel);
+		if (!(isNewRelation(nameRel, nameReceiver, nameEnt))) {
+			//deleteRelation(nameEnt, nameReceiver, nameRel);
 			deleteRelationFromQueue(nameEnt, nameReceiver, nameRel);
 		}
 	}
 }
 
-
+/*	hola
 void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the first data-structure
 	EntityPointer entityPointer = (EntityPointer)malloc(sizeof(Entity));
-	RelPointer relPointer = NULL;
+	//RelPointer relPointer = NULL;		hola
 	bool entNotExists = 1;
 	bool isNewRel = 1;
 	entityPointer = entHead;
@@ -210,6 +211,7 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 		}
 	}
 }	//end of addRelation()
+*/
 
 
 void addRelToQueue(char* ent, char* receiver, char* rel) {
@@ -219,6 +221,7 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 	RelQueuePointer queuePointer = NULL;
 	RelQueuePointer queuePointerBack = NULL;
 	RelQueuePointer queuePointerFront = NULL;
+	int nameEntsCounter = 0;	//hola
 
 	while ((isNewRelName) && (temp != NULL)) {
 		if (!strcmp(temp->nameRel, rel)) isNewRelName = 0;
@@ -232,6 +235,9 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 		temp->head->receiver = (char*)malloc(64);
 		strcpy(temp->head->receiver, receiver);
 		temp->head->numOfRels++;
+		temp->head->nameEnts = (char**)calloc(64, sizeof(char*));			//hola
+		temp->head->nameEnts[nameEntsCounter] = (char*)calloc(64, sizeof(char));	//hola
+		strcpy(temp->head->nameEnts[nameEntsCounter], ent);			//hola
 		//temp->tail = temp->head;
 		if (relHead == NULL) {
 			relHead = temp;
@@ -266,11 +272,23 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 			queuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
 			queuePointer->receiver = (char*)malloc(64);
 			strcpy(queuePointer->receiver, receiver);
+			queuePointer->nameEnts = (char*)calloc(64, sizeof(char*));			//hola
+			queuePointer->nameEnts[nameEntsCounter] = (char*)calloc(64, sizeof(char));	//hola
+			strcpy(queuePointer->nameEnts[nameEntsCounter], ent);			//hola
+			queuePointer->nameEnts[nameEntsCounter + 1] = NULL;
 			queuePointer->numOfRels++;
 			queuePointer->relNext = temp->head;
 			temp->head->relBef = queuePointer;
 			temp->head = queuePointer;
-		}/*
+		}
+		else if (strcmp(temp->head->receiver, receiver) == 0) {
+			while (temp->head->nameEnts[nameEntsCounter] != NULL) { nameEntsCounter++; }
+			temp->head->nameEnts[nameEntsCounter] = (char*)calloc(64, sizeof(char));	//hola
+			strcpy(temp->head->nameEnts[nameEntsCounter], ent);			//hola
+			temp->head->nameEnts[nameEntsCounter + 1] = NULL;
+			temp->head->numOfRels++;
+		}
+		/*
 		else if (strcmp(temp->tail->receiver, receiver) < 0) {
 			QueuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
 			QueuePointer->receiver = (char*)malloc(64);
@@ -298,12 +316,20 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 				queuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
 				queuePointer->receiver = (char*)malloc(64);
 				strcpy(queuePointer->receiver, receiver);
+				queuePointer->nameEnts = (char*)calloc(23, sizeof(char));			//hola
+				queuePointer->nameEnts[nameEntsCounter] = (char*)malloc(64);	//hola
+				strcpy(queuePointer->nameEnts[nameEntsCounter], ent);			//hola
+				queuePointer->nameEnts[nameEntsCounter + 1] = NULL;
 				queuePointer->numOfRels++;
 				queuePointer->relBef = queuePointerBack;
 				queuePointerBack->relNext = queuePointer;
 			}
 			else if (!(strcmp(queuePointer->receiver, receiver))) {	//increases numOfRel
 				queuePointer->numOfRels++;
+				while (queuePointer->nameEnts[nameEntsCounter] != NULL) { nameEntsCounter++; }	//hola
+				queuePointer->nameEnts[nameEntsCounter] = (char*)malloc(64);	//hola
+				strcpy(queuePointer->nameEnts[nameEntsCounter], ent);			//hola
+				queuePointer->nameEnts[nameEntsCounter + 1] = NULL;
 			}
 			else {
 				queuePointerBack = temp->head;
@@ -317,6 +343,10 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 				queuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
 				queuePointer->receiver = (char*)malloc(64);
 				strcpy(queuePointer->receiver, receiver);
+				queuePointer->nameEnts = (char*)calloc(23, sizeof(char));			//hola
+				queuePointer->nameEnts[nameEntsCounter] = (char*)malloc(64);	//hola
+				strcpy(queuePointer->nameEnts[nameEntsCounter], ent);			//hola
+				queuePointer->nameEnts[nameEntsCounter + 1] = NULL;
 				queuePointer->numOfRels++;
 				queuePointer->relNext = queuePointerFront;
 				queuePointer->relBef = queuePointerBack;
@@ -328,28 +358,37 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 }	//end of addRelToQueue
 
 
-bool isNewRelation(char* nameRel, char* receiver, char* user, bool isDelrel) {
-	EntityPointer structTemp = entHead;
-	RelPointer relPointer = NULL;
+bool isNewRelation(char* nameRel, char* receiver, char* user) {
+	RelStructPointer structTemp = relHead;	//hola
+	RelQueuePointer	queuePointer = NULL;
+	char* namesEnt = NULL;
+	int nameEntsCounter = 0;
+	//RelPointer relPointer = NULL;		hola
 
-	while (structTemp != NULL) {
-		if (strcmp(structTemp->name, user) != 0) { 
-			if (strcmp(structTemp->name, user) < 0) { structTemp = structTemp->sonDx; }
-			else { structTemp = structTemp->sonSx; }
-		}
-		else break;
+	while (structTemp != NULL) {	//hola
+		if (!(strcmp(structTemp->nameRel, nameRel))) { break; }
+		else { structTemp = structTemp->relNext; }
 	}
 	if (structTemp == NULL) { 
-		if (isDelrel) { return true; }
-		else return false;
+		return true;
 	}	//the ent does not exist
 	else {
-		relPointer = structTemp->relPointer;
-		while ((relPointer != NULL)) {
-			if ((strcmp(relPointer->nameRel, nameRel) == 0) && (strcmp(relPointer->receiver, receiver) == 0)) {
-				return false;
-			}
-			else relPointer = relPointer->relNext;
+		queuePointer = structTemp->head;
+		while ((queuePointer != NULL) && ((strcmp(queuePointer->receiver, receiver)) != 0)) {
+			queuePointer = queuePointer->relNext;
+		}
+		if (queuePointer == NULL) {
+			return true;
+		}
+		else {
+			namesEnt = queuePointer->nameEnts[nameEntsCounter];
+			while ((namesEnt != NULL) && ((strcmp(namesEnt, user)) != 0)) {
+				nameEntsCounter++;
+				if (queuePointer->nameEnts[nameEntsCounter] != NULL) { namesEnt = queuePointer->nameEnts[nameEntsCounter]; }
+				else { break; }
+			}	//hola
+			if (!(strcmp(namesEnt, user))) { return false; }
+			else { return true; }
 		}
 	}
 	return true;
@@ -402,7 +441,7 @@ char** chooseEntsToPrint(RelQueuePointer relQueuePointer) {
 	return entsToPrint;
 }
 
-
+/*
 void deleteRelation(char* nameEnt, char* nameReceiver, char* nameRel) {
 	//from the first data structure.
 	EntityPointer entTemp = entHead;
@@ -439,11 +478,13 @@ void deleteRelation(char* nameEnt, char* nameReceiver, char* nameRel) {
 		}
 	}
 }
-
+*/
 
 void deleteRelationFromQueue(char* nameEnt, char* nameReceiver, char* nameRel) {
 	RelStructPointer relStructTemp = relHead;
 	RelQueuePointer relQueueTemp = NULL;
+	int nameEntsCounter = 0;
+	char** namesEnt = NULL;
 
 	while ((relStructTemp != NULL) && (strcmp(relStructTemp->nameRel, nameRel) != 0)) {
 		relStructTemp = relStructTemp->relNext;
@@ -462,7 +503,19 @@ void deleteRelationFromQueue(char* nameEnt, char* nameReceiver, char* nameRel) {
 				isQueueEmpty(relStructTemp);
 			}
 			else {
+				relQueueTemp = relStructTemp->head;
+				while ((relQueueTemp != NULL) && (strcmp(relQueueTemp, nameReceiver) != 0)) {
+					relQueueTemp = relQueueTemp->relNext;
+				}
+				if (relQueueTemp == NULL) { return; }
 				relStructTemp->head->numOfRels--;
+				namesEnt = relQueueTemp->nameEnts;
+				while ((namesEnt[nameEntsCounter] != NULL) && (!(strcmp(namesEnt[nameEntsCounter], nameEnt)))) { nameEntsCounter++; }	//hola
+				while (namesEnt[nameEntsCounter] != NULL) {
+					namesEnt[nameEntsCounter] = namesEnt[nameEntsCounter + 1];
+					nameEntsCounter++;
+				}
+				namesEnt[nameEntsCounter] == NULL;
 			}
 		}/*
 		else if (strcmp(relStructTemp->tail->receiver, nameReceiver) == 0) {
@@ -496,7 +549,16 @@ void deleteRelationFromQueue(char* nameEnt, char* nameReceiver, char* nameRel) {
 					relQueueTemp = NULL;
 					isQueueEmpty(relStructTemp);
 				}
-				else {	relQueueTemp->numOfRels--;	}
+				else {	
+					relQueueTemp->numOfRels--;	
+					namesEnt = relQueueTemp->nameEnts;
+					while ((namesEnt[nameEntsCounter] != NULL) && (!(strcmp(namesEnt[nameEntsCounter], nameEnt)))) { nameEntsCounter++; }	//hola
+					while (namesEnt[nameEntsCounter] != NULL) {
+						namesEnt[nameEntsCounter] = namesEnt[nameEntsCounter + 1];
+						nameEntsCounter++;
+					}
+					namesEnt[nameEntsCounter] == NULL;
+				}
 			}
 		}
 	}
@@ -505,7 +567,7 @@ void deleteRelationFromQueue(char* nameEnt, char* nameReceiver, char* nameRel) {
 
 void deleteEntity(char* nameEnt) {
 	EntityPointer entPointerTemp = entHead, entPointerBack = NULL;
-	RelPointer relPointerTemp = NULL;
+	//RelPointer relPointerTemp = NULL;
 
 	while (entPointerTemp != NULL) {
 		if (!(strcmp(entPointerTemp->name, nameEnt))) {
@@ -521,12 +583,12 @@ void deleteEntity(char* nameEnt) {
 		}
 	}
 	if (entPointerTemp == NULL) { return; }
-	else {
+	else {/*
 		relPointerTemp = entPointerTemp->relPointer;
 		while (relPointerTemp != NULL) {
 			deleteRelationFromQueue(entPointerTemp->name, relPointerTemp->receiver, relPointerTemp->nameRel);	//deletes the relations which the entity has.
 			relPointerTemp = relPointerTemp->relNext;
-		}
+		}*/
 		if (entPointerTemp == entHead) {
 			if ((entPointerTemp->sonDx == NULL) && (entPointerTemp->sonSx == NULL)) {
 				entHead = NULL;
