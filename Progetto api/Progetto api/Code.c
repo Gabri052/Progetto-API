@@ -241,7 +241,7 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 		else {
 			tempBef = relHead;
 			while (tempBef->relNext != NULL) {
-				if ((strcmp(tempBef->nameRel, temp->nameRel)) < 0) {
+				if ((strcmp(tempBef->relNext->nameRel, temp->nameRel)) < 0) {
 					tempBef = tempBef->relNext;
 				}
 				else break;
@@ -334,8 +334,8 @@ bool isNewRelation(char* nameRel, char* receiver, char* user, bool isDelrel) {
 	RelPointer relPointer = NULL;
 
 	while (structTemp != NULL) {
-		if (strcmp(structTemp->name, user) != 0) { 
-			if (strcmp(structTemp->name, user) < 0) { structTemp = structTemp->sonDx; }
+		if (strcmp(structTemp->name, receiver) != 0) { 
+			if (strcmp(structTemp->name, receiver) < 0) { structTemp = structTemp->sonDx; }
 			else { structTemp = structTemp->sonSx; }
 		}
 		else break;
@@ -345,12 +345,26 @@ bool isNewRelation(char* nameRel, char* receiver, char* user, bool isDelrel) {
 		else return false;
 	}	//the ent does not exist
 	else {
-		relPointer = structTemp->relPointer;
-		while ((relPointer != NULL)) {
-			if ((strcmp(relPointer->nameRel, nameRel) == 0) && (strcmp(relPointer->receiver, receiver) == 0)) {
-				return false;
+		structTemp = entHead;
+		while (structTemp != NULL) {
+			if (strcmp(structTemp->name, user) != 0) {
+				if (strcmp(structTemp->name, user) < 0) { structTemp = structTemp->sonDx; }
+				else { structTemp = structTemp->sonSx; }
 			}
-			else relPointer = relPointer->relNext;
+			else break;
+		}
+		if (structTemp == NULL) {
+			if (isDelrel) { return true; }
+			else return false;
+		}	//the ent does not exist
+		else {
+			relPointer = structTemp->relPointer;
+			while ((relPointer != NULL)) {
+				if ((strcmp(relPointer->nameRel, nameRel) == 0) && (strcmp(relPointer->receiver, receiver) == 0)) {
+					return false;
+				}
+				else relPointer = relPointer->relNext;
+			}
 		}
 	}
 	return true;
