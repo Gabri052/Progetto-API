@@ -57,6 +57,7 @@ void deleteEntity(char*);
 void deleteEntityFromQueue(char*);
 void putTreeNode(EntityPointer);
 void isQueueEmpty(RelStructPointer);
+void recursiveSearch(EntityPointer, char*);
 
 
 int main(int argc, char* argv[]) {
@@ -522,6 +523,7 @@ void deleteEntity(char* nameEnt) {
 	EntityPointer entPointerTemp = entHead, entPointerBack = NULL;
 	RelPointer relPointerTemp = NULL;
 
+	recursiveSearch(entHead, nameEnt);
 	while (entPointerTemp != NULL) {
 		if (!(strcmp(entPointerTemp->name, nameEnt))) {
 			break;
@@ -646,4 +648,29 @@ void isQueueEmpty(RelStructPointer relStruct) {	//checks whether the structRel h
 			relTemp->relNext = relStruct->relNext;
 		}
 	}
+}
+
+
+void recursiveSearch(EntityPointer entTemp, char* receiver) {
+	RelPointer relTemp = entTemp->relPointer;
+	RelPointer relTempBack = entTemp->relPointer;
+
+	while (relTemp != NULL) {
+		if (!(strcmp(relTemp->receiver, receiver))) {
+			if (entTemp->relPointer == relTemp) {
+				entTemp->relPointer = entTemp->relPointer->relNext;
+				relTemp = entTemp->relPointer;
+				if (relTemp == NULL) { break; }
+			}
+			else {
+				while (relTempBack->relNext != relTemp) {
+					relTempBack = relTempBack->relNext;
+				}
+				relTempBack->relNext = relTemp->relNext;
+			}
+		}
+		relTemp = relTemp->relNext;
+	}
+	if (entTemp->sonDx != NULL) { recursiveSearch(entTemp->sonDx, receiver); }
+	if (entTemp->sonSx != NULL) { recursiveSearch(entTemp->sonSx, receiver); }
 }
