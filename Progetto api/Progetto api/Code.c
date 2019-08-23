@@ -523,7 +523,7 @@ void deleteEntity(char* nameEnt) {
 	EntityPointer entPointerTemp = entHead, entPointerBack = NULL;
 	RelPointer relPointerTemp = NULL;
 
-	recursiveSearch(entHead, nameEnt);
+	if (entHead != NULL) { recursiveSearch(entHead, nameEnt); }
 	while (entPointerTemp != NULL) {
 		if (!(strcmp(entPointerTemp->name, nameEnt))) {
 			break;
