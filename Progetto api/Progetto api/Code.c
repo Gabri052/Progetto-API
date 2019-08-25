@@ -61,7 +61,7 @@ void recursiveSearch(EntityPointer, char*);
 
 
 int main(int argc, char* argv[]) {
-	line=(char*)malloc(32 * sizeof(char));
+	line=(char*)malloc(64 * sizeof(char));
 	if (line == NULL) {
 		printf("Errore allocazione riga: ending process.");
 		return 1;
@@ -111,7 +111,7 @@ void addEntity(char* nameEnt) {
 	int endOfLine;
 
 	if (entPoint != NULL) {
-		entPoint->name = (char*)malloc(sizeof(char) * 32);
+		entPoint->name = (char*)malloc(sizeof(char) * 64);
 		if (entPoint->name != NULL) { strcpy(entPoint->name, nameEnt); }
 
 		if (entSearch == NULL) {	//enthead does not exist
@@ -148,9 +148,9 @@ void addEntity(char* nameEnt) {
 
 void lookForEnt() {
 	int i = 0;
-	char* nameEnt = (char*)calloc(32, sizeof(char));
-	char* nameReceiver = (char*)calloc(32, sizeof(char));
-	char* nameRel = (char*)calloc(32, sizeof(char));
+	char* nameEnt = (char*)calloc(64, sizeof(char));
+	char* nameReceiver = (char*)calloc(64, sizeof(char));
+	char* nameRel = (char*)calloc(64, sizeof(char));
 	fscanf(stdin, "%s", nameEnt);
 	fscanf(stdin, "%s", nameReceiver);
 	fscanf(stdin, "%s", nameRel);
@@ -203,9 +203,9 @@ void addRelation(char* nameEnt, char* nameReceiver, char* nameRel) {	//to the fi
 		}
 		else {
 			relPointer = (RelPointer)malloc(sizeof(Rel));
-			relPointer->nameRel = (char*)malloc(32);
+			relPointer->nameRel = (char*)malloc(64);
 			strcpy(relPointer->nameRel, nameRel);
-			relPointer->receiver = (char*)malloc(32);
+			relPointer->receiver = (char*)malloc(64);
 			strcpy(relPointer->receiver, nameReceiver);
 			relPointer->relNext = entityPointer->relPointer;
 			entityPointer->relPointer = relPointer;
@@ -227,11 +227,12 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 		else temp = temp->relNext;
 	}
 	if (isNewRelName) {		//creates the rel and the Queue
+		temp = NULL;
 		temp = (RelStructPointer)malloc(sizeof(RelStruct));
-		temp->nameRel = (char*)malloc(sizeof(char) * 32);
+		temp->nameRel = (char*)malloc(sizeof(char) * 64);
 		strcpy(temp->nameRel, rel);
 		temp->head = (RelQueuePointer)calloc(1, sizeof(RelQueue));
-		temp->head->receiver = (char*)malloc(32);
+		temp->head->receiver = (char*)malloc(64);
 		strcpy(temp->head->receiver, receiver);
 		temp->head->numOfRels++;
 		//temp->tail = temp->head;
@@ -266,7 +267,7 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 	else {		//adds to the Queue the new rel
 		if (strcmp(temp->head->receiver, receiver) > 0) {
 			queuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
-			queuePointer->receiver = (char*)malloc(32);
+			queuePointer->receiver = (char*)malloc(64);
 			strcpy(queuePointer->receiver, receiver);
 			queuePointer->numOfRels++;
 			queuePointer->relNext = temp->head;
@@ -298,7 +299,7 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 					queuePointerBack = queuePointerBack->relNext;
 				}
 				queuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
-				queuePointer->receiver = (char*)malloc(32);
+				queuePointer->receiver = (char*)malloc(64);
 				strcpy(queuePointer->receiver, receiver);
 				queuePointer->numOfRels++;
 				queuePointer->relBef = queuePointerBack;
@@ -317,7 +318,7 @@ void addRelToQueue(char* ent, char* receiver, char* rel) {
 					queuePointerFront = queuePointerFront->relNext;
 				}
 				queuePointer = (RelQueuePointer)calloc(1, sizeof(RelQueue));
-				queuePointer->receiver = (char*)malloc(32);
+				queuePointer->receiver = (char*)malloc(64);
 				strcpy(queuePointer->receiver, receiver);
 				queuePointer->numOfRels++;
 				queuePointer->relNext = queuePointerFront;
@@ -391,7 +392,7 @@ void printReport(char* nameRel, char** nameEnts) {
 char** chooseEntsToPrint(RelQueuePointer relQueuePointer) {
 	RelQueuePointer queuePointer = relQueuePointer;
 	int j = 0, i = 0;
-	char** entsToPrint = (char**)calloc(sizeof(char*), 15);	//fifteen ents receive the same number of the same relation.
+	char** entsToPrint = (char**)calloc(sizeof(char*), 32);	//32 ents receive the same number of the same relation.
 	highestNumOfRel = 0;
 	while (queuePointer != NULL) {
 		if (highestNumOfRel < queuePointer->numOfRels) {
@@ -403,17 +404,16 @@ char** chooseEntsToPrint(RelQueuePointer relQueuePointer) {
 			}
 			i = 0;
 			j = 0;
-			entsToPrint[i] = (char*)calloc(sizeof(char), 32);
+			entsToPrint[i] = (char*)calloc(sizeof(char), 64);
 			strcpy(entsToPrint[i], queuePointer->receiver);
 			i++;
 		}
 		else if (highestNumOfRel == queuePointer->numOfRels) {
-			entsToPrint[i] = (char*)malloc(sizeof(char) * 32);
+			entsToPrint[i] = (char*)malloc(sizeof(char) * 64);
 			strcpy(entsToPrint[i], queuePointer->receiver);
 			i++;
 		}
 		queuePointer = queuePointer->relNext;
-		if (i == 15) printf("entsToPrint deve essere riallocato perchè è troppo piccolo");
 	}
 	return entsToPrint;
 }
